@@ -1,0 +1,57 @@
+version: '3.3'
+
+services:
+  clickhouse-admin-sms-consumer:
+    build: ./
+    command: ./clickhouse-admin-sms-consumer
+    ports:
+      - "9005:9005" 
+    depends_on:
+      - clickhouse
+      - clickhouse-bulk
+      - nats
+    environment:
+      - CLICKHOUSE_HOST=clickhouse
+      - CLICKHOUSE_PORT=9000 
+      - CLICKHOUSE_DATABASE=pingocean
+      - CLICKHOUSE_USERNAME=username
+      - CLICKHOUSE_PASSWORD=password
+      - CLICKHOUSE_BULK_Url=clickhouse-bulk
+      - NATS_ADDRESS=nats
+      - NATS_SMSSUBJECTCREATE=clickhouse:admin_sms_tasks
+      - NATS_SMSMAXWORKERS=1000
+
+  clickhouse:
+    image: clickhouse/clickhouse-server
+    restart: always
+    ports:
+      - "9000:9000"
+      - "8123:8123"
+    environment:
+      - CLICKHOUSE_USER=username
+      - CLICKHOUSE_PASSWORD=password
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+    volumes:
+      - $PWD/media:/media
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+        
+  clickhouse-bulk:
+    image: nikepan/clickhouse-bulk
+    restart: always
+    ports:
+      - "8124:8124"
+    environment:
+      - CLICKHOUSE_SERVERS=http://clickhouse:9000
+      - CLICKHOUSE_BULK_DEBUG=1
+      - CLICKHOUSE_FLUSH_INTERVAL=300000
+    depends_on:
+      - "clickhouse"
+
+  nats:
+    image: nats
+    ports:
+      - "4222:4222"
+

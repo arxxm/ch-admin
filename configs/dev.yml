@@ -1,0 +1,14 @@
+ctx:
+  ttl: 10s
+
+clickhousebulk:
+  buffer_time: 300s
+
+nats:
+  total_wait: 600s
+  reconnect_delay: 1s
+
+# tarantool:
+#   garbage_collector_period: 7200s
+#   data_storage_time: 24 #hours, can't be less than 12 hours
+
